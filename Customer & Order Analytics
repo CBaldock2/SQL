@@ -1,0 +1,75 @@
+# In this SQL, I query a DB with multiple tables in it to quantify statistics about customer and order data
+
+# Selects the tables I am using.
+
+SELECT *
+FROM BIT_DB.customers
+WHERE length(order_id) = 6
+AND order_id <> 'Order ID';
+
+SELECT *
+FROM BIT_DB.JanSales
+WHERE length(orderID) = 6
+AND orderID <> 'Order ID';
+
+SELECT *
+FROM BIT_DB.FebSales
+WHERE length(orderID) = 6
+AND orderID <> 'Order ID';
+
+# How many Orders were palced in January?
+SELECT COUNT(orderID)
+FROM BIT_DB.JanSales
+WHERE length(orderID) = 6
+AND orderID <> 'Order ID';
+
+# How many of January's orders were iPhones?
+SELECT COUNT(orderID)
+FROM BIT_DB.JanSales
+WHERE length(orderID) = 6
+AND orderID <> 'Order ID'
+AND Product = "iPhone";
+
+# Selects the customers account number for all orders placed in February.
+SELECT DISTINCT Customers.acctnum
+FROM BIT_DB.FebSales Feb
+JOIN BIT_DB.customers Customers
+ON Feb.orderID = Customers.order_id
+WHERE length(orderID) = 6
+AND orderID <> 'Order ID';
+
+# What was the the product and price for the cheapest item sold in January?
+SELECT DISTINCT Product, MIN(price)
+FROM BIT_DB.JanSales
+WHERE length(orderID) = 6
+AND orderID <> 'Order ID';
+
+# What is the total revenue earned for each product sold in January?
+SELECT Product
+, ROUND(SUM(Quantity)*price,2) AS revenue
+FROM BIT_DB.JanSales
+WHERE length(orderID) = 6
+AND orderID <> 'Order ID'
+GROUP BY Product;
+
+# What are the products, how many were sold, and what is the revenue for each product sold that was sold at 548 Lincoln St, Seattle, WA 98101?
+SELECT 
+Product
+, SUM(Quantity)
+, SUM(Quantity)*price AS revenue
+FROM BIT_DB.FebSales
+WHERE length(orderID) = 6
+AND orderID <> 'Order ID'
+AND location = '548 Lincoln St, Seattle, WA 98101'
+GROUP BY Product;
+
+# How many customers ordered more than 2 products in February, and what was the average price spent?
+SELECT 
+COUNT(DISTINCT Customers.acctnum) AS customers
+, ROUND(AVG(quantity*price),2) AS avgPrice
+FROM BIT_DB.FebSales Feb
+JOIN BIT_DB.customers Customers
+ON Feb.orderID = Customers.order_id
+WHERE length(orderID) = 6
+AND orderID <> 'Order ID'
+AND Feb.Quantity > 2;
