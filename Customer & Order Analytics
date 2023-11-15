@@ -73,3 +73,36 @@ ON Feb.orderID = Customers.order_id
 WHERE length(orderID) = 6
 AND orderID <> 'Order ID'
 AND Feb.Quantity > 2;
+
+# What were the dates and time stamps for all the orders placed between February 13th and February 18th?
+SELECT orderdate
+FROM BIT_DB.FebSales
+WHERE orderdate BETWEEN '02/13/19 00:00' AND '02/18/19 00:00'
+ORDER BY orderdate;
+
+# Which locations had an order on February 18th, 2019 at 1:35?
+SELECT location
+FROM BIT_DB.FebSales
+WHERE orderdate = '02/18/19 01:35';
+
+# How many orders were placed on February 18th?
+SELECT SUM(quantity)
+FROM BIT_DB.FebSales
+WHERE orderdate LIKE '02/18/19%';
+
+# Select products with "Batteries" in the middle of the Product description.
+SELECT DISTINCT Product
+FROM BIT_DB.FebSales
+WHERE Product LIKE '%Batteries%';
+
+# Which products end in a price of 99 cents, and what is the full price of the product?
+SELECT DISTINCT Product, Price
+FROM BIT_DB.FebSales
+WHERE Price LIKE '%.99';
+
+# How many of each product was sold at a Los Angeles location?
+SELECT DISTINCT Product
+, SUM(quantity)
+FROM BIT_DB.FebSales
+WHERE location LIKE '%Los Angeles%'
+GROUP BY Product;
