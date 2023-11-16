@@ -1,0 +1,118 @@
+# For this project, I downloaded Spotify data from Kaggle.
+# Then I created a table to insert Spotify data into.
+# Finally, I performed analytics on the data using SQL. 
+
+# Creating the table:
+CREATE TABLE BIT_DB.Spotifydata (
+id integer PRIMARY KEY,
+artist_name varchar NOT NULL,
+track_name varchar NOT NULL,
+track_id varchar NOT NULL,
+popularity integer NOT NULL,
+danceability decimal(4,3) NOT NULL,
+energy decimal(4,3) NOT NULL,
+song_key integer NOT NULL,
+loudness decimal(5,3) NOT NULL,
+song_mode integer NOT NULL,
+speechiness decimal(5,4) NOT NULL,
+acousticness decimal(6,5) NOT NULL,
+instrumentalness decimal(8,7) NOT NULL,
+liveness decimal(5,4) NOT NULL,
+valence decimal(4,3) NOT NULL,
+tempo decimal(6,3) NOT NULL,
+duration_ms integer NOT NULL,
+time_signature integer NOT NULL );
+
+
+# Then I inserted the Spotify Data .csv into the table.
+
+# Next, I explored the data using the following SQL. 
+
+# 1. Selects all the data, to see the data I'm working with.
+SELECT *
+FROM Spotifydata;
+
+# 2. Which artist has the highest danceability percentage?
+SELECT artist_name
+, ROUND(AVG(danceability)*100,2) AS dancePercentage
+FROM Spotifydata
+GROUP BY artist_name
+ORDER BY dancePercentage DESC;
+
+# 3. Who are the top 10 artists with the highest danceability?
+SELECT artist_name
+, ROUND(AVG(danceability),1)*100 AS avgDance
+FROM Spotifydata
+GROUP BY artist_name
+ORDER BY avgDance DESC
+LIMIT 10;
+
+# 4. Who are the top 10 artists averaging the highest popularity, what is the popularity?
+SELECT artist_name
+, ROUND(AVG(popularity),1) AS avgPop
+FROM Spotifydata
+GROUP BY artist_name
+ORDER BY avgPop DESC
+LIMIT 10;
+
+# 5. Who sings the longest song, what song is it?
+SELECT artist_name
+, track_name
+, MAX(duration_ms)/1000/60 AS minutes
+FROM Spotifydata;
+
+# 6. Selects Olivia Rodrigo and The Weeknd song and shows the popularity for each song.
+SELECT artist_name
+, track_name
+, popularity
+FROM Spotifydata
+WHERE
+artist_name = 'Olivia Rodrigo'
+OR artist_name = 'The Weeknd';
+
+# 7. Creates a list of low energy, high acoustic songs for a moody playlist.
+SELECT artist_name
+, track_name
+FROM Spotifydata
+WHERE energy < .5
+AND acousticness > .5;
+
+# 8. What is each artists average tempo?
+SELECT artist_name
+, AVG(tempo) AS avgTemp
+FROM Spotifydata
+GROUP BY artist_name
+ORDER BY avgTemp;
+
+# 9. What are the top 10 positive sounding songs?
+SELECT artist_name
+, track_name
+FROM Spotifydata
+ORDER BY valence desc
+LIMIT 10;
+
+# 10. What are the best songs to dance to with the most energy?
+SELECT track_name
+, artist_name
+FROM Spotifydata
+WHERE energy > .75
+AND danceability > .75
+ORDER BY loudness desc;
+
+# 11. How many songs are being played in each chord?
+SELECT COUNT(track_name) AS tracks,
+CASE WHEN song_key = 0 THEN 'C'
+WHEN song_key = 1 THEN 'C#/Db'
+WHEN song_key = 2 THEN 'D'
+WHEN song_key = 3 THEN 'D#/Eb'
+WHEN song_key = 4 THEN 'E'
+WHEN song_key = 5 THEN 'F'
+WHEN song_key = 6 THEN 'F#/Gb'
+WHEN song_key = 7 THEN 'G'
+WHEN song_key = 8 THEN 'G#/Ab'
+WHEN song_key = 9 THEN 'A'
+WHEN song_key = 10 THEN 'A#/Bb'
+WHEN song_key = 11 THEN 'B'
+END AS 'keyChords'
+FROM Spotifydata
+GROUP BY keyChords;
