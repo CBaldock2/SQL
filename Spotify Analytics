@@ -116,3 +116,17 @@ WHEN song_key = 11 THEN 'B'
 END AS 'keyChords'
 FROM Spotifydata
 GROUP BY keyChords;
+
+# 12. Creates a CTE (Common Expression Table) and selects artists with an average popularity >= 90 and labels them a 'Top Star'.
+WITH pop_avg_CTE AS  (
+SELECT artist_name
+, AVG(popularity) AS average_popularity
+FROM Spotifydata
+GROUP BY artist_name
+)
+SELECT artist_name
+, average_popularity
+, 'Top Star'
+FROM pop_avg_CTE
+WHERE average_popularity >= 90
+ORDER BY average_popularity desc;
