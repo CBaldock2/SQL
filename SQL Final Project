@@ -1,0 +1,204 @@
+# The queries below are to answer questions on relational tabels about songs, invoices, customers, and employees
+
+# Line 3-35 selects the data from each dataset to know how the data I am working with is formatted. 
+SELECT *
+FROM chinook.albums;
+
+SELECT *
+FROM chinook.artists;
+
+SELECT *
+FROM chinook.customers;
+
+SELECT *
+FROM chinook.employees;
+
+SELECT *
+FROM chinook.genres;
+
+SELECT *
+FROM chinook.invoice_items;
+
+SELECT *
+FROM chinook.invoices;
+
+SELECT *
+FROM chinook.media_types;
+
+SELECT *
+FROM chinook.playlist_track;
+
+SELECT *
+FROM chinook.playlists;
+
+SELECT *
+FROM chinook.tracks;
+
+
+
+# 1. Selects customer data for customers outside of the USA
+SELECT FirstName || ' ' || LastName AS FullName
+, CustomerId
+, Country
+FROM chinook.customers
+WHERE Country <> 'USA';
+
+# 2. Selects customer data if they live in the USA
+SELECT FirstName, LastName, CustomerId, Country 
+FROM chinook.customers 
+WHERE Country = "USA";
+
+# 3. Selects all the customer data for residents of Brazil
+SELECT *
+FROM chinook.customers
+WHERE Country = 'Brazil';
+
+# 4. Which customer, from Brazil, bought something?
+SELECT Cust.FirstName || ' ' || Cust.LastName AS FullName
+, Invoice.InvoiceId
+, Invoice.InvoiceDate
+, Invoice.BillingCountry
+FROM chinook.customers Cust
+LEFT JOIN chinook.invoices Invoice
+ON Cust.CustomerId = Invoice.CustomerId
+WHERE Cust.Country = 'Brazil';
+
+# 5. Who are the sales agents?
+SELECT FirstName
+, LastName
+, Title
+FROM chinook.employees
+WHERE Title LIKE '%Agent';
+
+# 6. What are the billing conutries?
+SELECT DISTINCT BillingCountry
+FROM chinook.invoices;
+
+# 7. Which employee handled each invoice?
+SELECT inv.InvoiceId
+, emp.FirstName || ' ' || emp.LastName AS AgentFullName
+FROM chinook.customers AS cust
+JOIN chinook.invoices AS inv
+ON cust.CustomerId = inv.CustomerId
+JOIN chinook.employees AS emp
+ON cust.SupportRepId = emp.EmployeeId
+ORDER BY InvoiceId;
+
+# 8. Shows the Invoice Total, Customer name, Country, and Sales Agent name for all invoices and customers.
+SELECT SUM(inv.Total)
+, cust.FirstName || ' ' || cust.LastName AS FullName
+, cust.Country
+, emp.FirstName || ' ' || emp.LastName AS AgentFullName
+FROM chinook.customers cust
+JOIN chinook.invoices inv
+ON cust.CustomerId = inv.CustomerId
+JOIN chinook.employees emp
+ON cust.SupportRepId = emp.EmployeeId
+GROUP BY FullName;
+
+# 9. How many Invoices were there in 2009?
+SELECT COUNT(InvoiceID)
+FROM chinook.invoices
+WHERE InvoiceDate LIKE'2009%';
+
+# 10. What are the total sales for 2009?
+SELECT SUM(Total)
+FROM chinook.invoices
+WHERE InvoiceDate LIKE'2009%';
+
+# 11. Which track was purchased with each invoice?
+SELECT track.Name
+, inv_item.InvoiceId
+FROM chinook.tracks track
+JOIN chinook.invoice_items inv_item
+ON track.TrackId = inv_item.TrackId;
+
+# 12. Which track and the artist that performs it belong to each invoice?
+SELECT inv_item.InvoiceId
+, track.Name
+, artist.Name
+FROM chinook.tracks track
+JOIN chinook.invoice_items inv_item
+ON track.TrackId = inv_item.TrackId
+JOIN chinook.albums album
+ON track.AlbumId = album.AlbumId
+JOIN artists artist
+ON album.ArtistId = artist.ArtistId;
+
+# 13. What are the album names, media type, and genre for each track?
+SELECT track.Name AS Track
+, album.Title
+, genre.Name AS Genre
+, media.Name AS MediaType
+FROM chinook.tracks track
+JOIN chinook.albums album
+ON track.AlbumId = album.AlbumId
+JOIN chinook.genres genre
+ON track.GenreId = genre.GenreID
+JOIN chinook.media_types media
+ON track.MediaTypeId = media.MediaTypeId;
+
+# 14. How much revenue did each sales agent earn?
+SELECT emp.FirstName || ' ' || emp.LastName AS AgentFullName
+, ROUND(SUM(inv.total),2) AS TotalRevenue
+FROM chinook.customers cust
+JOIN chinook.invoices inv
+ON cust.CustomerId = inv.CustomerId
+JOIN chinook.employees emp
+ON cust.SupportRepId = emp.EmployeeId
+GROUP BY AgentFullName;
+
+# 15. Which sales agent earned the most dollars in 2009?
+SELECT emp.FirstName || ' ' || emp.LastName AS AgentFullName
+, ROUND(SUM(inv.total),2) AS TotalRevenue
+FROM chinook.customers cust
+JOIN chinook.invoices inv
+ON cust.CustomerId = inv.CustomerId
+JOIN chinook.employees emp
+ON cust.SupportRepId = emp.EmployeeId
+WHERE inv.InvoiceDate LIKE '2009%'
+GROUP BY AgentFullName
+ORDER BY TotalRevenue desc
+LIMIT 1;
+
+# 16. Which playlist do the songs belong to?
+SELECT DISTINCT track.Name As TrackName
+, playlists.Name AS PlaylistName
+FROM playlist_track plt
+JOIN tracks track
+ON plt.TrackId = track.TrackId
+JOIN playlists
+ON plt.PlaylistId = playlists.PlaylistId;
+
+# 17. How many tracks does each playlist have?
+SELECT COUNT(DISTINCT track.Name) As TrackName
+, playlists.Name AS PlaylistName
+FROM playlist_track plt
+JOIN tracks track
+ON plt.TrackId = track.TrackId
+JOIN playlists
+ON plt.PlaylistId = playlists.PlaylistId
+GROUP BY PlaylistName;
+
+# 18. How many songs does each album have? (order from most songs to least songs)
+SELECT COUNT(DISTINCT track.Name) As TrackName
+, album.Title AS AlbumName
+FROM tracks track
+JOIN albums album
+ON track.AlbumId = album.AlbumId
+GROUP BY AlbumName
+ORDER BY TrackName desc;
+
+# 19. How many songs did each customer purchase, and how much did they pay (order form most to least spent)?
+SELECT cust.FirstName || ' ' || cust.LastName AS FullName
+, COUNT(track.Name)
+, ROUND(SUM(invItm.UnitPrice),2) AS PriceSpent
+FROM customers cust
+JOIN invoices inv
+ON cust.CustomerId = inv.CustomerId
+JOIN invoice_items invItm
+ON inv.InvoiceId = invItm.InvoiceId
+JOIN tracks track
+ON invItm.TrackId = track.TrackId
+GROUP BY FullName
+ORDER BY PriceSpent desc;
