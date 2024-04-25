@@ -1,0 +1,282 @@
+SELECT * 
+FROM NationalPark;
+
+/* Updates the 'DateAdded' from a null value to the date Yellowstone was added as a national park */
+UPDATE NationalPark
+SET DateAdded = '1872/03/01'
+WHERE ParkName = 'Yellowstone';
+
+/* Updates the 'DateAdded' from a null value to the date Mount Rainier was added as a national park */
+UPDATE NationalPark
+SET DateAdded = '1899/03/02'
+WHERE ParkName = 'Mount Rainier';
+
+/* Updates the 'DateAdded' from a null value to the date Yosemite was added as a national park */
+UPDATE NationalPark
+SET DateAdded = '1890/10/01'
+WHERE ParkName = 'Yosemite';
+
+/* Updates the 'DateAdded' from a null value to the date Sequoia was added as a national park */
+UPDATE NationalPark
+SET DateAdded = '1890/09/25'
+WHERE ParkName = 'Sequoia';
+
+/* this section counts the national parks by region */
+SELECT COUNT(ParkRegion) AS WestParks
+FROM NationalPark
+WHERE ParkRegion = 'West';
+
+SELECT COUNT(ParkRegion) AS SouthParks
+FROM NationalPark
+WHERE ParkRegion = 'South';
+
+SELECT COUNT(ParkRegion) AS MidwestParks
+FROM NationalPark
+WHERE ParkRegion = 'Midwest';
+
+SELECT COUNT(ParkRegion) NortheastParks
+FROM NationalPark
+WHERE ParkRegion = 'Northeast';
+
+SELECT COUNT(ParkRegion) OtherRegionParks
+FROM NationalPark
+WHERE ParkRegion = 'other';
+
+SELECT ParkRegion, COUNT(ParkRegion) AS NumOfParks
+FROM NationalPark
+GROUP BY ParkRegion;
+
+/* Lists which parks are in the Midwest */
+SELECT ParkName, ParkState
+FROM NationalPark
+WHERE ParkRegion = 'Midwest';
+
+/* Lists the top 10 national parks by size */
+SELECT DISTINCT TOP 10 ParkName, ParkSize
+FROM NationalPark
+ORDER BY ParkSize DESC;
+
+/* Lists how many parks are in each state */
+SELECT ParkState, COUNT(ParkState)
+FROM NationalPark
+GROUP BY ParkState;
+
+/* Lists how many parks are in each state and orders them from most parks to least parks */
+SELECT ParkState, COUNT(ParkState) AS TotalPerState
+FROM NationalPark
+GROUP BY ParkState
+ORDER BY TotalPerState DESC;
+
+/* Lists park information from parks in California and Colorado */
+SELECT * 
+FROM NationalPark
+WHERE ParkState IN ('Colorado', 'California');
+
+/* Lists the parks by earliest added to most recently added */
+SELECT ParkName, ParkState, DateAdded 
+FROM NationalPark
+ORDER BY DateAdded;
+
+/* Lists all the parks that were added from 1920 to 1975 */
+SELECT * 
+FROM NationalPark
+WHERE DateAdded BETWEEN '1920/01/01' AND '1975/01/01';
+
+/* Lists all the parks that were added after I was born :) */
+SELECT * 
+FROM NationalPark
+WHERE DateAdded > '1996/08/26';
+
+/* Counts the parks with no entry fee */
+SELECT COUNT(ParkName) 
+FROM NationalPark
+WHERE EntryFee = 0;
+
+/* Counts the parks with no entry fee by the state */
+SELECT ParkState, COUNT(ParkName) 
+FROM NationalPark
+WHERE EntryFee = 0
+GROUP BY ParkState;
+
+/* Lists all the parks with no Entry Fee */
+SELECT ParkName, ParkState
+FROM NationalPark
+WHERE EntryFee = 0;
+
+/* Lists the average entry fee */
+SELECT AVG(EntryFee) 
+FROM NationalPark;
+
+/* Uses a subquery to list all the parks with a below average entry fee */
+SELECT ParkName, EntryFee
+FROM NationalPark
+WHERE EntryFee < (SELECT AVG(EntryFee) FROM NationalPark);
+
+/* Uses a subquery to list all the parks with an above average entry fee */
+SELECT ParkName, EntryFee
+FROM NationalPark
+WHERE EntryFee > (SELECT AVG(EntryFee) FROM NationalPark);
+
+/* Lists all the information where the park is in the west and the size is greater or equal to 750000 acres OR the entry fee is less than $20 */
+SELECT * 
+FROM NationalPark
+WHERE ParkRegion = 'West'
+	AND ParkSize >= 750000
+	OR EntryFee < 20
+ORDER BY ParkSize DESC;
+
+
+
+
+
+
+SELECT * 
+FROM GeographicLocation;
+
+/* Lists each Main Biome */
+SELECT DISTINCT MainBiome 
+FROM GeographicLocation;
+
+/* Counts how many of each main biome there is */
+SELECT MainBiome, COUNT(MainBiome) AS NumOfBiome
+FROM GeographicLocation
+GROUP BY MainBiome;
+
+/* Lists all parks where the main biome is a forest */
+SELECT *
+FROM GeographicLocation
+WHERE MainBiome = 'Forest';
+
+/* Lists all the parks larger than 500,000 acres with their main biome */
+SELECT DISTINCT n.ParkName, n.ParkSize, g.MainBiome
+FROM NationalPark n
+JOIN GeographicLocation g ON n.ParkID = g.ParkID
+WHERE n.ParkSize > 500000
+ORDER BY g.MainBiome;
+
+
+
+
+
+SELECT * 
+FROM Trails;
+
+/* Lists all the Easy trails */
+SELECT * FROM Trails
+WHERE Difficulty = 'Easy';
+
+/* Counts how many trails in each difficulty category */
+SELECT Difficulty, COUNT(Difficulty) AS NumOfTrail
+FROM Trails
+GROUP BY Difficulty;
+
+/* Lists the trail name, length and if it is below, roughly, or above average length */
+SELECT TrailName, [TrailLength (mi)],
+CASE
+	WHEN [TrailLength (mi)] < ((SELECT AVG([TrailLength (mi)]) FROM Trails) - .5)  THEN 'Below'
+	WHEN [TrailLength (mi)] < ((SELECT AVG([TrailLength (mi)]) FROM Trails) + .5)  THEN 'Roughly'
+	ELSE 'Above'
+END AS AverageLength
+FROM Trails;
+
+/* Adds all the miles of trail in the database */
+SELECT SUM([TrailLength (mi)]) AS TotalMiles
+FROM Trails;
+
+/* Adds all the miles of trail in the database by the difficulty level */
+SELECT Difficulty, SUM([TrailLength (mi)]) AS TotalMiles
+FROM Trails
+GROUP BY Difficulty;
+
+/* Lists the trail if the name ends in Loop */
+SELECT * 
+FROM Trails
+WHERE TrailName LIKE '%Loop';
+
+/* Lists the trail if the name has Loop in it */
+SELECT * 
+FROM Trails
+WHERE TrailName LIKE '%Loop%';
+
+
+/* Lists which trail is in which park */
+SELECT n.ParkName, t.TrailName
+FROM NationalPark n
+JOIN GeographicLocation g ON n.ParkID=g.ParkID
+JOIN Trails t ON g.LocationID=t.LocationID;
+
+/* Counts how many trails each park has (Database Specefic, I did NOT include every trail in each park) */
+SELECT n.ParkName, COUNT(t.TrailName) AS TrailsPerPark
+FROM NationalPark n
+LEFT JOIN GeographicLocation g ON n.ParkID=g.ParkID
+LEFT JOIN Trails t ON g.LocationID=t.LocationID
+GROUP BY n.ParkName;
+
+/* Averages how many trail miles each park has (Database Specefic, I did NOT include every trail in each park) */
+SELECT n.ParkName, AVG(t.[TrailLength (mi)]) AS AVGMilesPerPark
+FROM NationalPark n
+LEFT JOIN GeographicLocation g ON n.ParkID=g.ParkID
+JOIN Trails t ON g.LocationID=t.LocationID
+GROUP BY n.ParkName;
+
+/* Adds all the miles of trails each park has (Database Specefic, I did NOT include every trail in each park) */
+SELECT n.ParkName, SUM(t.[TrailLength (mi)]) AS MilesPerPark
+FROM NationalPark n
+LEFT JOIN GeographicLocation g ON n.ParkID=g.ParkID
+JOIN Trails t ON g.LocationID=t.LocationID
+GROUP BY n.ParkName;
+
+/* Lists all the parks in the Midwest with their trails */
+SELECT n.ParkName, n.ParkRegion, t.TrailID, t.TrailName
+FROM NationalPark n
+JOIN GeographicLocation g ON n.ParkID = g.ParkID
+JOIN Trails t ON g.LocationID = t.LocationID
+WHERE n.ParkRegion = 'Midwest';
+
+/* Finds the longest trail in each park */
+/* NOTE: This is not necessarily the longest in the park, just the longest in my database */
+SELECT n.ParkName, MAX(t.[TrailLength (mi)]) AS LongestTrail
+FROM NationalPark n
+JOIN GeographicLocation g ON n.ParkID = g.ParkID
+JOIN Trails t ON g.LocationID = t.LocationID
+GROUP BY n.ParkName;
+
+/* Counts the tails by difficulty for each park */
+/* NOTE: This is not necessarily all the trails, just the trails in my database */
+SELECT n.ParkName, t.Difficulty, COUNT(t.TrailID) AS NumberOfTrails
+FROM NationalPark n
+JOIN GeographicLocation g ON n.ParkID = g.ParkID
+JOIN Trails t ON g.LocationID = t.LocationID
+GROUP BY n.ParkName, t.Difficulty
+ORDER BY n.ParkName;
+
+
+/* Finds all the parks with a forest biome that have a strenuous trail */
+SELECT DISTINCT n.ParkName
+FROM NationalPark n
+JOIN GeographicLocation g ON n.ParkID = g.ParkID
+JOIN Trails t ON g.LocationID = t.LocationID
+WHERE g.MainBiome = 'Forest' AND t.Difficulty = 'Strenuous'
+ORDER BY n.ParkName;
+
+/* Lists the longest, shortest, and average trail length for each park */
+/* NOTE: This is not necessarily all the trails, just the trails in my database */
+SELECT n.ParkName, MAX(t.[TrailLength (mi)]) AS LongestTrail, MIN(t.[TrailLength (mi)]) AS ShortestTrail, AVG(t.[TrailLength (mi)] ) AS AverageTrailLength
+FROM NationalPark n
+JOIN GeographicLocation g ON n.ParkID = g.ParkID
+JOIN Trails t ON g.LocationID = t.LocationID
+GROUP BY n.ParkName;
+
+/* Lists the longest, shortest, and average trail length for each biome */
+/* NOTE: This is not necessarily all the trails, just the trails in my database */
+SELECT g.MainBiome, MAX(t.[TrailLength (mi)]) AS LongestTrail, MIN(t.[TrailLength (mi)]) AS ShortestTrail, AVG(t.[TrailLength (mi)] ) AS AverageTrailLength
+FROM GeographicLocation g
+JOIN Trails t ON g.LocationID = t.LocationID
+GROUP BY g.MainBiome;
+
+/* Ranks trails by length, with 1 being the longest, for each park */
+SELECT n.ParkName, t.TrailName, t.[TrailLength (mi)],
+       RANK() OVER (PARTITION BY n.ParkName ORDER BY t.[TrailLength (mi)] DESC) AS LengthRank
+FROM NationalPark n
+JOIN GeographicLocation g ON n.ParkID = g.ParkID
+JOIN Trails t ON g.LocationID = t.LocationID;
